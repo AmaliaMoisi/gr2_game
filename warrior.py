@@ -77,9 +77,10 @@ def handle_move(player):
 
 
 
+
 def main(window):
     clock = pygame.time.Clock()
-    background, bg_image = get_background("Blue.png")
+    background, bg_image = get_background("Pink.png")
     player = Player(100, 100, 50, 50)
     run = True
     while run:
