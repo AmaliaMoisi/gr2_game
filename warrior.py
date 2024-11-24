@@ -8,18 +8,56 @@ from os.path import isfile, join
 pygame.init()
 pygame.display.set_caption("Warrior")
 
-<<<<<<< Updated upstream
-=======
-restart_img = pygame.image.load("assets\menu1\estart_btn.png")
-start_img = pygame.image.load("assets\menu1\start_btn.png")
-start_img = pygame.image.load("assets\menu1\start_btn.png")
-
-
->>>>>>> Stashed changes
 WIDTH, HEIGHT = 900, 700
 FPS = 60
 PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
+
+def main_menu():
+    SCREEN_HEIGHT = 500
+    SCREEN_WIDTH = 800
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Warrior Menu")
+
+    start_img = pygame.image.load("assets/menu1/start_btn.png")
+    exit_img = pygame.image.load("assets/menu1/exit_btn.png")
+
+    class Button():
+        def __init__(self, x, y, image):
+            self.image = image
+            self.rect = self.image.get_rect()
+            self.rect.topleft = (x, y)
+
+        def draw(self):
+            screen.blit(self.image, (self.rect.x, self.rect.y))
+
+        def is_clicked(self, pos):
+            return self.rect.collidepoint(pos)
+
+    start_button = Button(100, 200, start_img)
+    exit_button = Button(450, 200, exit_img)
+
+    run = True
+    while run:
+        screen.fill((202, 228, 241))
+
+        start_button.draw()
+        exit_button.draw()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  
+                    if start_button.is_clicked(event.pos):
+                        main(window)  
+                    if exit_button.is_clicked(event.pos):
+                        run = False  
+
+        pygame.display.update()
+
+    pygame.quit()
 
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -58,7 +96,7 @@ def get_background(name):
 class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
     GRAVITY = 1
-    SPRITES = load_sprite_sheets("MainCharacters", "NinjaFrog", 32, 32, True)
+    SPRITES = load_sprite_sheets("MainCharacters", "MaskDude", 32, 32, True)
 
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -89,13 +127,11 @@ class Player(pygame.sprite.Sprite):
     def loop(self, fps):
         #self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY) #disabled to check animation without charecter falling
         self.move(self.x_vel, self.y_vel)
-
         self.fall_count += 1
 
     def draw(self, win):
         self.sprite = self.SPRITES["idle_"+self.direction][0]
         win.blit(self.sprite, (self.rect.x, self.rect.y))
-     
 
 def draw(window, background, bg_image, player):
     for tile in background:
@@ -132,4 +168,4 @@ def main(window):
     quit()
 
 if __name__ == "__main__":
-    main(window)
+    main_menu()
