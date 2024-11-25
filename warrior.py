@@ -8,8 +8,6 @@ from os.path import isfile, join
 pygame.init()
 pygame.display.set_caption("Warrior")
 
-<<<<<<< Updated upstream
-=======
 restart_img = pygame.image.load("assets\menu1\estart_btn.png")
 start_img = pygame.image.load("assets\menu1\start_btn.png")
 start_img = pygame.image.load("assets\menu1\start_btn.png")
