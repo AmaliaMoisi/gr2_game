@@ -8,12 +8,9 @@ from os.path import isfile, join
 pygame.init()
 pygame.display.set_caption("Warrior")
 
-restart_img = pygame.image.load("assets\menu1\estart_btn.png")
-start_img = pygame.image.load("assets\menu1\start_btn.png")
-start_img = pygame.image.load("assets\menu1\start_btn.png")
+restart_img = pygame.image.load("assets/menu1/restart_btn.png")
+start_img = pygame.image.load("assets/menu1/start_btn.png")
 
-
->>>>>>> Stashed changes
 WIDTH, HEIGHT = 900, 700
 FPS = 60
 PLAYER_VEL = 5
@@ -36,11 +33,12 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
             rect = pygame.Rect(i * width, 0, width, height)
             surface.blit(sprite_sheet, (0, 0), rect)
             sprites.append(pygame.transform.scale2x(surface))
+        base_name = image.replace(".png", "")  
         if direction:
-            all_sprites[image.replace(".png", "") + "_right"] = sprites
-            all_sprites[image.replace(".png", "") + "_left"] = flip(sprites)
+            all_sprites[f"{base_name}_right"] = sprites
+            all_sprites[f"{base_name}_left"] = flip(sprites)
         else:
-            all_sprites[image.replace(".png", "")] = sprites
+            all_sprites[base_name] = sprites
     return all_sprites
 
 def get_background(name):
@@ -56,7 +54,7 @@ def get_background(name):
 class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
     GRAVITY = 1
-    SPRITES = load_sprite_sheets("MainCharacters", "NinjaFrog", 32, 32, True)
+    SPRITES = load_sprite_sheets("MainCharacters", "VirtualGuy", 32, 32, True)
 
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -85,15 +83,12 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
 
     def loop(self, fps):
-        #self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY) #disabled to check animation without charecter falling
         self.move(self.x_vel, self.y_vel)
-
         self.fall_count += 1
 
     def draw(self, win):
         self.sprite = self.SPRITES["idle_"+self.direction][0]
         win.blit(self.sprite, (self.rect.x, self.rect.y))
-     
 
 def draw(window, background, bg_image, player):
     for tile in background:
@@ -110,21 +105,52 @@ def handle_move(player):
     if keys[pygame.K_d]:
         player.move_right(PLAYER_VEL)
 
+def draw_menu(window):
+    window.fill((0, 0, 0)) 
+
+    start_button_rect = start_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
+    window.blit(start_img, start_button_rect)
+
+   
+    restart_button_rect = restart_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+    window.blit(restart_img, restart_button_rect)
+
+    pygame.display.update()
+
+    return start_button_rect, restart_button_rect
+
 def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Pink.png")
     player = Player(100, 100, 50, 50)
+
+    in_menu = True
     run = True
+
     while run:
         clock.tick(FPS)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 break
 
-        player.loop(FPS)
-        handle_move(player)
-        draw(window, background, bg_image, player)
+            if in_menu:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    start_rect, restart_rect = draw_menu(window)
+
+                    if start_rect.collidepoint(mouse_pos):
+                        in_menu = False  
+                    elif restart_rect.collidepoint(mouse_pos):
+                        print("Restart clicked")
+
+        if in_menu:
+            draw_menu(window)
+        else:
+            player.loop(FPS)
+            handle_move(player)
+            draw(window, background, bg_image, player)
 
     pygame.quit()
     quit()
