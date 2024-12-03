@@ -16,6 +16,7 @@ FPS = 60
 PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
+
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
 
@@ -55,6 +56,7 @@ class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
     GRAVITY = 1
     SPRITES = load_sprite_sheets("MainCharacters", "VirtualGuy", 32, 32, True)
+    ANIMATION_DELAY = 3
 
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -85,9 +87,24 @@ class Player(pygame.sprite.Sprite):
     def loop(self, fps):
         self.move(self.x_vel, self.y_vel)
         self.fall_count += 1
+        self.update_sprite()
+
+    def update_sprite(self):
+        sprite_sheet= "idle"
+        if self.x_vel != 0:
+            sprite_sheet= "run"
+        sprite_sheet_name = sprite_sheet + "_" + self.direction
+        sprites = self.SPRITES[sprite_sheet_name]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.animation_count += 1
+        self.update()
+
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
 
     def draw(self, win):
-        self.sprite = self.SPRITES["idle_"+self.direction][0]
         win.blit(self.sprite, (self.rect.x, self.rect.y))
 
 def draw(window, background, bg_image, player):
@@ -111,7 +128,6 @@ def draw_menu(window):
     start_button_rect = start_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
     window.blit(start_img, start_button_rect)
 
-   
     restart_button_rect = restart_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
     window.blit(restart_img, restart_button_rect)
 
