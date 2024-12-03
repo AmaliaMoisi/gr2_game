@@ -42,6 +42,14 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
             all_sprites[base_name] = sprites
     return all_sprites
 
+def get_block(size):
+    path = join("assets", "Terrain", "Terrain.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
+    rect = pygame.Rect(96, 128 , size, size)
+    surface.blit(image, (0, 0), rect)
+    return pygame.transform.scale2x(surface) 
+
 def get_background(name):
     image = pygame.image.load(join("assets", "Background", name))
     _, _, width, height = image.get_rect()
@@ -107,9 +115,30 @@ class Player(pygame.sprite.Sprite):
     def draw(self, win):
         win.blit(self.sprite, (self.rect.x, self.rect.y))
 
-def draw(window, background, bg_image, player):
+class Object(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height , name=None):
+        super().__init__()
+        self.rect = pygame.Rect(x, y, width, height)
+        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
+        self.width = width
+        self.height = height
+        self.name = name
+
+    def draw(self, window):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+class Block(Object):
+    def __init__(self, x, y, size):
+        super().__init__(x, y, size, size)
+        block = get_block(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+def draw(window, background, bg_image, player, objects):
     for tile in background:
         window.blit(bg_image, tile)
+    for obj in objects:
+        obj.draw(window)
     player.draw(window)
     pygame.display.update()
 
@@ -138,7 +167,10 @@ def draw_menu(window):
 def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Pink.png")
+    block_size = 96
     player = Player(100, 100, 50, 50)
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*2)//block_size) ]
+    #blocks = [Block(0, HEIGHT - block_size, block_size)]
 
     in_menu = True
     run = True
@@ -166,7 +198,7 @@ def main(window):
         else:
             player.loop(FPS)
             handle_move(player)
-            draw(window, background, bg_image, player)
+            draw(window, background, bg_image, player, floor)
 
     pygame.quit()
     quit()
