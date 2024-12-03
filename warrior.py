@@ -93,6 +93,7 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
 
     def loop(self, fps):
+        #self.y_vel += min(1, (self.fall_count/ fps) *self.GRAVITY)
         self.move(self.x_vel, self.y_vel)
         self.fall_count += 1
         self.update_sprite()
@@ -134,6 +135,66 @@ class Block(Object):
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
 
+class Start(Object):
+    ANIMATION_DELAY = 3
+
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "start")
+        self.start = load_sprite_sheets("Items", "Start", width, height)
+        self.image = self.start["Idle"][0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+        self.animation_name = "Idle"
+
+    def on(self):
+        self.animation_name = "Moving"
+
+    def off(self):
+        self.animation_name = "Idle"
+
+    def loop(self):
+        sprites = self.start[self.animation_name]
+        sprite_index = (self.animation_count //
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
+
+class Stop(Object):
+    ANIMATION_DELAY = 3
+
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "stop")
+        self.stop = load_sprite_sheets("Items", "End", width, height)
+        self.image = self.stop["Idle"][0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+        self.animation_name = "Idle"
+
+    def on(self):
+        self.animation_name = "Moving"
+
+    def off(self):
+        self.animation_name = "Idle"
+
+    def loop(self):
+        sprites = self.stop[self.animation_name]
+        sprite_index = (self.animation_count //
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
+
 def draw(window, background, bg_image, player, objects):
     for tile in background:
         window.blit(bg_image, tile)
@@ -169,9 +230,15 @@ def main(window):
     background, bg_image = get_background("Pink.png")
     block_size = 96
     player = Player(100, 100, 50, 50)
+
+    start = Start(0 ,HEIGHT - block_size - (64*2), 64, 64)
+    start.on()
+    stop = Stop(790,HEIGHT - block_size - (64*2), 64, 64)
+    stop.on()
+
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*2)//block_size) ]
     #blocks = [Block(0, HEIGHT - block_size, block_size)]
-
+    objects = [*floor, start, stop]
     in_menu = True
     run = True
 
@@ -197,8 +264,10 @@ def main(window):
             draw_menu(window)
         else:
             player.loop(FPS)
+            stop.loop()
+            start.loop()
             handle_move(player)
-            draw(window, background, bg_image, player, floor)
+            draw(window, background, bg_image, player, objects)
 
     pygame.quit()
     quit()
