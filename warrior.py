@@ -101,7 +101,7 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
 
     def loop(self, fps):
-        #self.y_vel += min(1, (self.fall_count/ fps) *self.GRAVITY)
+        self.y_vel += min(1, (self.fall_count/ fps) *self.GRAVITY)
         self.move(self.x_vel, self.y_vel)
         self.fall_count += 1
         self.update_sprite()
@@ -130,8 +130,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.sprite)
 
-    def draw(self, win):
-        win.blit(self.sprite, (self.rect.x, self.rect.y))
+    def draw(self, win, offset_x):
+        win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
 
 class Object(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height , name=None):
@@ -142,8 +142,8 @@ class Object(pygame.sprite.Sprite):
         self.height = height
         self.name = name
 
-    def draw(self, window):
-        window.blit(self.image, (self.rect.x, self.rect.y))
+    def draw(self, window, offset_x):
+        window.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 class Block(Object):
     def __init__(self, x, y, size):
@@ -212,12 +212,12 @@ class Stop(Object):
         if self.animation_count // self.ANIMATION_DELAY > len(sprites):
             self.animation_count = 0
 
-def draw(window, background, bg_image, player, objects):
+def draw(window, background, bg_image, player, objects, offset_x):
     for tile in background:
         window.blit(bg_image, tile)
     for obj in objects:
-        obj.draw(window)
-    player.draw(window)
+        obj.draw(window,offset_x)
+    player.draw(window,offset_x)
     pygame.display.update()
 
 def handle_move(player, objects):
@@ -231,18 +231,17 @@ def handle_move(player, objects):
    
     handle_vertical_collision(player, objects, player.y_vel)
 
-def handle_vertical_collision(player, objects, dy ):
+def handle_vertical_collision(player, objects, dy):
     collided_objects = []
     for obj in objects:
         if pygame.sprite.collide_mask(player, obj):
-            if dy > 0 :
-               player.rect.bottom = object.top
-               player.landed()
-            elif dy < 0 :
-                player.rect.top = obj.rect.bottom
+            if dy > 0:  
+                player.rect.bottom = obj.rect.top  
+                player.landed()
+            elif dy < 0: 
+                player.rect.top = obj.rect.bottom  
                 player.hit_head()
-    
-        collided_objects.append(obj)
+            collided_objects.append(obj)  
     
     return collided_objects
 
@@ -275,6 +274,11 @@ def main(window):
     #blocks = [Block(0, HEIGHT - block_size, block_size)]
     objects = [*floor, start, stop]
     in_menu = True
+    
+    offset_x = 0
+    scroll_area_width = 200
+
+
     run = True
 
     while run:
@@ -307,7 +311,15 @@ def main(window):
             stop.loop()
             start.loop()
             handle_move(player, floor)
-            draw(window, background, bg_image, player, floor)
+            draw(window, background, bg_image, player, floor, offset_x)
+
+
+            if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel> 0) or (
+                    (player.rect.left - offset_x <= scroll_area_width )and player.x_vel) <0):
+
+                offset_x += player.x_vel
+
+
 
     pygame.quit()
     quit()
