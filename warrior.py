@@ -224,9 +224,9 @@ def handle_move(player, objects):
     keys = pygame.key.get_pressed()
 
     player.x_vel = 0
-    if keys[pygame.K_a]:
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         player.move_left(PLAYER_VEL)
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         player.move_right(PLAYER_VEL)
    
     handle_vertical_collision(player, objects, player.y_vel)
@@ -311,7 +311,7 @@ def main(window):
             stop.loop()
             start.loop()
             handle_move(player, floor)
-            draw(window, background, bg_image, player, floor, offset_x)
+            draw(window, background, bg_image, player, objects, offset_x)
 
 
             if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel> 0) or (
