@@ -8,56 +8,14 @@ from os.path import isfile, join
 pygame.init()
 pygame.display.set_caption("Warrior")
 
+restart_img = pygame.image.load("assets/menu1/restart_btn.png")
+start_img = pygame.image.load("assets/menu1/start_btn.png")
+
 WIDTH, HEIGHT = 900, 700
 FPS = 60
 PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
-def main_menu():
-    SCREEN_HEIGHT = 500
-    SCREEN_WIDTH = 800
-
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Warrior Menu")
-
-    start_img = pygame.image.load("assets/menu1/start_btn.png")
-    exit_img = pygame.image.load("assets/menu1/exit_btn.png")
-
-    class Button():
-        def __init__(self, x, y, image):
-            self.image = image
-            self.rect = self.image.get_rect()
-            self.rect.topleft = (x, y)
-
-        def draw(self):
-            screen.blit(self.image, (self.rect.x, self.rect.y))
-
-        def is_clicked(self, pos):
-            return self.rect.collidepoint(pos)
-
-    start_button = Button(100, 200, start_img)
-    exit_button = Button(450, 200, exit_img)
-
-    run = True
-    while run:
-        screen.fill((202, 228, 241))
-
-        start_button.draw()
-        exit_button.draw()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  
-                    if start_button.is_clicked(event.pos):
-                        main(window)  
-                    if exit_button.is_clicked(event.pos):
-                        run = False  
-
-        pygame.display.update()
-
-    pygame.quit()
 
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -76,12 +34,21 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
             rect = pygame.Rect(i * width, 0, width, height)
             surface.blit(sprite_sheet, (0, 0), rect)
             sprites.append(pygame.transform.scale2x(surface))
+        base_name = image.replace(".png", "")  
         if direction:
-            all_sprites[image.replace(".png", "") + "_right"] = sprites
-            all_sprites[image.replace(".png", "") + "_left"] = flip(sprites)
+            all_sprites[f"{base_name}_right"] = sprites
+            all_sprites[f"{base_name}_left"] = flip(sprites)
         else:
-            all_sprites[image.replace(".png", "")] = sprites
+            all_sprites[base_name] = sprites
     return all_sprites
+
+def get_block(size):
+    path = join("assets", "Terrain", "Terrain.png")
+    image = pygame.image.load(path).convert_alpha()
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
+    rect = pygame.Rect(96, 128 , size, size)
+    surface.blit(image, (0, 0), rect)
+    return pygame.transform.scale2x(surface) 
 
 def get_background(name):
     image = pygame.image.load(join("assets", "Background", name))
@@ -96,10 +63,11 @@ def get_background(name):
 class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
     GRAVITY = 1
-    SPRITES = load_sprite_sheets("MainCharacters", "MaskDude", 32, 32, True)
+    SPRITES = load_sprite_sheets("MainCharacters", "VirtualGuy", 32, 32, True)
+    ANIMATION_DELAY = 3
 
-    def __init__(self, x, y, width, height):
-        super().__init__()
+    def _init_(self, x, y, width, height):
+        super()._init_()
         self.rect = pygame.Rect(x, y, width, height)
         self.x_vel = 0
         self.y_vel = 0
@@ -107,6 +75,14 @@ class Player(pygame.sprite.Sprite):
         self.direction = "left"
         self.animation_count = 0
         self.fall_count = 0
+        self.jump_count = 0
+    
+    def jump(self):
+        self.y_vel = -self.GRAVITY * 8
+        self.animation_count = 0
+        self.jump_count += 1 
+        if self.jump_count == 1: 
+            self.fall_count = 0
 
     def move(self, dx, dy):
         self.rect.x += dx
@@ -125,21 +101,126 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
 
     def loop(self, fps):
-        #self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY) #disabled to check animation without charecter falling
+        self.y_vel += min(1, (self.fall_count/ fps) *self.GRAVITY)
         self.move(self.x_vel, self.y_vel)
         self.fall_count += 1
+        self.update_sprite()
+    
+    def landed(self):
+        self.fall_count = 0
+        self.y_vel = 0
+        self.jump_count = 0
+    
+    def hit_head(self):
+        self.count = 0
+        self.y_vel *= -1
 
-    def draw(self, win):
-        self.sprite = self.SPRITES["idle_"+self.direction][0]
-        win.blit(self.sprite, (self.rect.x, self.rect.y))
+    def update_sprite(self):
+        sprite_sheet= "idle"
+        if self.x_vel != 0:
+            sprite_sheet= "run"
+        sprite_sheet_name = sprite_sheet + "_" + self.direction
+        sprites = self.SPRITES[sprite_sheet_name]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.sprite = sprites[sprite_index]
+        self.animation_count += 1
+        self.update()
 
-def draw(window, background, bg_image, player):
+    def update(self):
+        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.sprite)
+
+    def draw(self, win, offset_x):
+        win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
+
+class Object(pygame.sprite.Sprite):
+    def _init_(self, x, y, width, height , name=None):
+        super()._init_()
+        self.rect = pygame.Rect(x, y, width, height)
+        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
+        self.width = width
+        self.height = height
+        self.name = name
+
+    def draw(self, window, offset_x):
+        window.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+
+class Block(Object):
+    def _init_(self, x, y, size):
+        super()._init_(x, y, size, size)
+        block = get_block(size)
+        self.image.blit(block, (0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+
+class Start(Object):
+    ANIMATION_DELAY = 3
+
+    def _init_(self, x, y, width, height):
+        super()._init_(x, y, width, height, "start")
+        self.start = load_sprite_sheets("Items", "Start", width, height)
+        self.image = self.start["Idle"][0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+        self.animation_name = "Idle"
+
+    def on(self):
+        self.animation_name = "Moving"
+
+    def off(self):
+        self.animation_name = "Idle"
+
+    def loop(self):
+        sprites = self.start[self.animation_name]
+        sprite_index = (self.animation_count //
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
+
+class Stop(Object):
+    ANIMATION_DELAY = 3
+
+    def _init_(self, x, y, width, height):
+        super()._init_(x, y, width, height, "stop")
+        self.stop = load_sprite_sheets("Items", "End", width, height)
+        self.image = self.stop["Idle"][0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+        self.animation_name = "Idle"
+
+    def on(self):
+        self.animation_name = "Moving"
+
+    def off(self):
+        self.animation_name = "Idle"
+
+    def loop(self):
+        sprites = self.stop[self.animation_name]
+        sprite_index = (self.animation_count //
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
+
+def draw(window, background, bg_image, player, objects, offset_x):
     for tile in background:
         window.blit(bg_image, tile)
-    player.draw(window)
+    for obj in objects:
+        obj.draw(window,offset_x)
+    player.draw(window,offset_x)
     pygame.display.update()
 
-def handle_move(player):
+def handle_move(player, objects):
     keys = pygame.key.get_pressed()
 
     player.x_vel = 0
@@ -147,25 +228,101 @@ def handle_move(player):
         player.move_left(PLAYER_VEL)
     if keys[pygame.K_d]:
         player.move_right(PLAYER_VEL)
+   
+    handle_vertical_collision(player, objects, player.y_vel)
+
+def handle_vertical_collision(player, objects, dy):
+    collided_objects = []
+    for obj in objects:
+        if pygame.sprite.collide_mask(player, obj):
+            if dy > 0:  
+                player.rect.bottom = obj.rect.top  
+                player.landed()
+            elif dy < 0: 
+                player.rect.top = obj.rect.bottom  
+                player.hit_head()
+            collided_objects.append(obj)  
+    
+    return collided_objects
+
+
+def draw_menu(window):
+    window.fill((0, 0, 0)) 
+
+    start_button_rect = start_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
+    window.blit(start_img, start_button_rect)
+
+    restart_button_rect = restart_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+    window.blit(restart_img, restart_button_rect)
+
+    pygame.display.update()
+
+    return start_button_rect, restart_button_rect
 
 def main(window):
     clock = pygame.time.Clock()
     background, bg_image = get_background("Pink.png")
+    block_size = 96
     player = Player(100, 100, 50, 50)
+
+    start = Start(0 ,HEIGHT - block_size - (64*2), 64, 64)
+    start.on()
+    stop = Stop(790,HEIGHT - block_size - (64*2), 64, 64)
+    stop.on()
+
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*2)//block_size) ]
+    #blocks = [Block(0, HEIGHT - block_size, block_size)]
+    objects = [*floor, start, stop]
+    in_menu = True
+    
+    offset_x = 0
+    scroll_area_width = 200
+
+
     run = True
+
     while run:
         clock.tick(FPS)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 break
+            
 
-        player.loop(FPS)
-        handle_move(player)
-        draw(window, background, bg_image, player)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player.jump_count < 2:
+                    player.jump()
+
+            if in_menu:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    start_rect, restart_rect = draw_menu(window)
+
+                    if start_rect.collidepoint(mouse_pos):
+                        in_menu = False  
+                    elif restart_rect.collidepoint(mouse_pos):
+                        print("Restart clicked")
+
+        if in_menu:
+            draw_menu(window)
+        else:
+            player.loop(FPS)
+            stop.loop()
+            start.loop()
+            handle_move(player, floor)
+            draw(window, background, bg_image, player, floor, offset_x)
+
+
+            if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel> 0) or (
+                    (player.rect.left - offset_x <= scroll_area_width )and player.x_vel) <0):
+
+                offset_x += player.x_vel
+
+
 
     pygame.quit()
     quit()
 
 if __name__ == "__main__":
-    main_menu()
+    main(window)
