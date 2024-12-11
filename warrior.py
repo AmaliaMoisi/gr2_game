@@ -7,14 +7,18 @@ from os.path import isfile, join
 pygame.init()
 pygame.display.set_caption("Warrior")
 
+<<<<<<< Updated upstream
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
 start_img = pygame.image.load("assets/menu1/start_btn.png")
+=======
+>>>>>>> Stashed changes
 
 WIDTH, HEIGHT = 900, 700
 FPS = 60
 PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
+<<<<<<< Updated upstream
 
 def main_menu():
     SCREEN_HEIGHT = 500
@@ -62,6 +66,9 @@ def main_menu():
 
     pygame.quit()
 
+=======
+<<<<<<< HEAD
+>>>>>>> Stashed changes
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
 
@@ -87,6 +94,7 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
             all_sprites[base_name] = sprites
     return all_sprites
 
+<<<<<<< Updated upstream
 def get_block(size):
     path = join("assets", "Terrain", "Terrain.png")
     image = pygame.image.load(path).convert_alpha()
@@ -95,6 +103,10 @@ def get_block(size):
     surface.blit(image, (0, 0), rect)
     return pygame.transform.scale2x(surface) 
 
+=======
+=======
+>>>>>>> e93ece10ce49ddac2edd1fabe63894ac9df7c1e7
+>>>>>>> Stashed changes
 def get_background(name):
     image = pygame.image.load(join("assets", "Background", name))
     _, _, width, height = image.get_rect()
@@ -108,8 +120,11 @@ def get_background(name):
 class Player(pygame.sprite.Sprite):
     COLOR = (255, 0, 0)
     GRAVITY = 1
+<<<<<<< Updated upstream
     SPRITES = load_sprite_sheets("MainCharacters", "VirtualGuy", 32, 32, True)
     ANIMATION_DELAY = 3
+=======
+>>>>>>> Stashed changes
 
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -146,7 +161,15 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
 
     def loop(self, fps):
+<<<<<<< Updated upstream
         self.y_vel += min(1, (self.fall_count/ fps) *self.GRAVITY)
+=======
+<<<<<<< HEAD
+      
+=======
+        self.y_vel += min(1, (self.fall_count / fps ) * self.GRAVITY)
+>>>>>>> e93ece10ce49ddac2edd1fabe63894ac9df7c1e7
+>>>>>>> Stashed changes
         self.move(self.x_vel, self.y_vel)
         self.fall_count += 1
         self.update_sprite()
@@ -160,6 +183,7 @@ class Player(pygame.sprite.Sprite):
         self.count = 0
         self.y_vel *= -1
 
+<<<<<<< Updated upstream
     def update_sprite(self):
         sprite_sheet= "idle"
         if self.x_vel != 0:
@@ -170,6 +194,10 @@ class Player(pygame.sprite.Sprite):
         self.sprite = sprites[sprite_index]
         self.animation_count += 1
         self.update()
+=======
+    def draw(self, win):
+        pygame.draw.rect(win, self.COLOR, self.rect)
+>>>>>>> Stashed changes
 
     def update(self):
         self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
@@ -320,6 +348,11 @@ def draw_menu(window):
     pygame.display.update()
 
     return start_button_rect, restart_button_rect
+
+
+
+
+
 
 def main(window):
     clock = pygame.time.Clock()
