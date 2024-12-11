@@ -1,4 +1,3 @@
-import os
 import random
 import math
 import pygame
@@ -222,11 +221,15 @@ def draw(window, background, bg_image, player, objects, offset_x):
 
 def handle_move(player, objects):
     keys = pygame.key.get_pressed()
-
     player.x_vel = 0
-    if keys[pygame.K_a]:
+    collide_left= collide(player, objects, -PLAYER_VEL*2)
+    collide_right= collide(player, objects, PLAYER_VEL*2)
+
+
+
+    if keys[pygame.K_a] and not collide_left:
         player.move_left(PLAYER_VEL)
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] and not collide_right:
         player.move_right(PLAYER_VEL)
    
     handle_vertical_collision(player, objects, player.y_vel)
@@ -244,6 +247,19 @@ def handle_vertical_collision(player, objects, dy):
             collided_objects.append(obj)  
     
     return collided_objects
+
+def collide(player, objects, dx):
+    player.move(dx, 0)
+    player.update()
+    collided_object = None
+    for obj in objects:
+        if pygame.sprite.collide_mask(player, obj):
+            collided_object = obj
+            break
+    player.move(-dx, 0)
+    player.update()
+    return collided_object
+
 
 
 def draw_menu(window):
@@ -274,7 +290,8 @@ def main(window):
     #blocks = [Block(0, HEIGHT - block_size, block_size)]
     objects = [*floor, start, stop]
     in_menu = True
-    
+    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
+                Block(block_size * 3 , HEIGHT - block_size * 4 , block_size)]
     offset_x = 0
     scroll_area_width = 200
 
@@ -310,8 +327,8 @@ def main(window):
             player.loop(FPS)
             stop.loop()
             start.loop()
-            handle_move(player, floor)
-            draw(window, background, bg_image, player, floor, offset_x)
+            handle_move(player, objects)
+            draw(window, background, bg_image, player, objects, offset_x)
 
 
             if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel> 0) or (
