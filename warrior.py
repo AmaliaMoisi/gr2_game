@@ -1,4 +1,3 @@
-import os
 import random
 import math
 import pygame
@@ -16,6 +15,52 @@ FPS = 60
 PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
+
+def main_menu():
+    SCREEN_HEIGHT = 500
+    SCREEN_WIDTH = 800
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Warrior Menu")
+
+    start_img = pygame.image.load("assets/menu1/start_btn.png")
+    exit_img = pygame.image.load("assets/menu1/exit_btn.png")
+
+    class Button():
+        def __init__(self, x, y, image):
+            self.image = image
+            self.rect = self.image.get_rect()
+            self.rect.topleft = (x, y)
+
+        def draw(self):
+            screen.blit(self.image, (self.rect.x, self.rect.y))
+
+        def is_clicked(self, pos):
+            return self.rect.collidepoint(pos)
+
+    start_button = Button(100, 200, start_img)
+    exit_button = Button(450, 200, exit_img)
+
+    run = True
+    while run:
+        screen.fill((202, 228, 241))
+
+        start_button.draw()
+        exit_button.draw()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  
+                    if start_button.is_clicked(event.pos):
+                        main(window)  
+                    if exit_button.is_clicked(event.pos):
+                        run = False  
+
+        pygame.display.update()
+
+    pygame.quit()
 
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -222,8 +267,13 @@ def draw(window, background, bg_image, player, objects, offset_x):
 
 def handle_move(player, objects):
     keys = pygame.key.get_pressed()
-
     player.x_vel = 0
+    collide_left= collide(player, objects, -PLAYER_VEL*2)
+    collide_right= collide(player, objects, PLAYER_VEL*2)
+
+
+
+    if keys[pygame.K_a] and not collide_left:
     if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         player.move_left(PLAYER_VEL)
     if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
@@ -244,6 +294,19 @@ def handle_vertical_collision(player, objects, dy):
             collided_objects.append(obj)  
     
     return collided_objects
+
+def collide(player, objects, dx):
+    player.move(dx, 0)
+    player.update()
+    collided_object = None
+    for obj in objects:
+        if pygame.sprite.collide_mask(player, obj):
+            collided_object = obj
+            break
+    player.move(-dx, 0)
+    player.update()
+    return collided_object
+
 
 
 def draw_menu(window):
@@ -274,7 +337,8 @@ def main(window):
     #blocks = [Block(0, HEIGHT - block_size, block_size)]
     objects = [*floor, start, stop]
     in_menu = True
-    
+    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
+                Block(block_size * 3 , HEIGHT - block_size * 4 , block_size)]
     offset_x = 0
     scroll_area_width = 200
 
