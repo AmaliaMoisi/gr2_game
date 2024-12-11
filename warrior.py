@@ -16,6 +16,52 @@ PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
 
+def main_menu():
+    SCREEN_HEIGHT = 500
+    SCREEN_WIDTH = 800
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Warrior Menu")
+
+    start_img = pygame.image.load("assets/menu1/start_btn.png")
+    exit_img = pygame.image.load("assets/menu1/exit_btn.png")
+
+    class Button():
+        def __init__(self, x, y, image):
+            self.image = image
+            self.rect = self.image.get_rect()
+            self.rect.topleft = (x, y)
+
+        def draw(self):
+            screen.blit(self.image, (self.rect.x, self.rect.y))
+
+        def is_clicked(self, pos):
+            return self.rect.collidepoint(pos)
+
+    start_button = Button(100, 200, start_img)
+    exit_button = Button(450, 200, exit_img)
+
+    run = True
+    while run:
+        screen.fill((202, 228, 241))
+
+        start_button.draw()
+        exit_button.draw()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  
+                    if start_button.is_clicked(event.pos):
+                        main(window)  
+                    if exit_button.is_clicked(event.pos):
+                        run = False  
+
+        pygame.display.update()
+
+    pygame.quit()
+
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
 
