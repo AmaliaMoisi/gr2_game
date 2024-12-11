@@ -126,8 +126,8 @@ class Player(pygame.sprite.Sprite):
 =======
 >>>>>>> Stashed changes
 
-    def __init__(self, x, y, width, height):
-        super().__init__()
+    def _init_(self, x, y, width, height):
+        super()._init_()
         self.rect = pygame.Rect(x, y, width, height)
         self.x_vel = 0
         self.y_vel = 0
@@ -207,8 +207,8 @@ class Player(pygame.sprite.Sprite):
         win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
 
 class Object(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height , name=None):
-        super().__init__()
+    def _init_(self, x, y, width, height , name=None):
+        super()._init_()
         self.rect = pygame.Rect(x, y, width, height)
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         self.width = width
@@ -219,8 +219,8 @@ class Object(pygame.sprite.Sprite):
         window.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 class Block(Object):
-    def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
+    def _init_(self, x, y, size):
+        super()._init_(x, y, size, size)
         block = get_block(size)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
@@ -228,8 +228,8 @@ class Block(Object):
 class Start(Object):
     ANIMATION_DELAY = 3
 
-    def __init__(self, x, y, width, height):
-        super().__init__(x, y, width, height, "start")
+    def _init_(self, x, y, width, height):
+        super()._init_(x, y, width, height, "start")
         self.start = load_sprite_sheets("Items", "Start", width, height)
         self.image = self.start["Idle"][0]
         self.mask = pygame.mask.from_surface(self.image)
@@ -258,8 +258,8 @@ class Start(Object):
 class Stop(Object):
     ANIMATION_DELAY = 3
 
-    def __init__(self, x, y, width, height):
-        super().__init__(x, y, width, height, "stop")
+    def _init_(self, x, y, width, height):
+        super()._init_(x, y, width, height, "stop")
         self.stop = load_sprite_sheets("Items", "End", width, height)
         self.image = self.stop["Idle"][0]
         self.mask = pygame.mask.from_surface(self.image)
@@ -302,8 +302,9 @@ def handle_move(player, objects):
 
 
     if keys[pygame.K_a] and not collide_left:
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         player.move_left(PLAYER_VEL)
-    if keys[pygame.K_d] and not collide_right:
+    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         player.move_right(PLAYER_VEL)
    
     handle_vertical_collision(player, objects, player.y_vel)
@@ -406,7 +407,10 @@ def main(window):
             player.loop(FPS)
             stop.loop()
             start.loop()
-            handle_move(player, objects)
+            handle_move(player, floor)
+
+            draw(window, background, bg_image, player, floor, offset_x)
+
             draw(window, background, bg_image, player, objects, offset_x)
 
 
