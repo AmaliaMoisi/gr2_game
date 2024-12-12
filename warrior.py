@@ -211,11 +211,13 @@ class Stop(Object):
         if self.animation_count // self.ANIMATION_DELAY > len(sprites):
             self.animation_count = 0
 
-def draw(window, background, bg_image, player, objects, offset_x):
+def draw(window, background, bg_image, player, objects, offset_x, fruit_group):
     for tile in background:
         window.blit(bg_image, tile)
     for obj in objects:
         obj.draw(window,offset_x)
+    for fruit in fruit_group:
+        fruit.draw(window, offset_x)
     player.draw(window,offset_x)
     pygame.display.update()
 
@@ -334,6 +336,36 @@ class Saw(Object):
         if self.animation_count // self.ANIMATION_DELAY > len(sprites):
             self.animation_count = 0
 
+class Fruit(Object):
+    ANIMATION_DELAY = 3
+
+    def __init__(self, x, y, width, height, fruit_name="Strawberry"):
+        super().__init__(x, y, width, height, "fruit")
+        self.fruit = load_sprite_sheets("Items", "Fruits", width, height)
+        self.animation_name=fruit_name
+        self.image = self.fruit[self.animation_name][0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+
+    def on(self):
+        self.image=self.fruit[self.animation_name][0]
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def loop(self):
+        sprites = self.fruit[self.animation_name]
+        sprite_index = (self.animation_count //
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
+    
+    def draw(self, window, offset_x=0):
+        window.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 def main(window):
     clock = pygame.time.Clock()
@@ -341,7 +373,7 @@ def main(window):
     block_size = 96
     player = Player(100, 100, 50, 50)
 
-    stop = Stop(900,HEIGHT - block_size - (64*2), 64, 64)
+    stop = Stop(3400,HEIGHT - block_size - (64*2), 64, 64)
     stop.on()
     start = Start(-20,HEIGHT - block_size - (64*4 -32), 64, 64)
     start.on()
@@ -351,7 +383,15 @@ def main(window):
     saw = Saw(380, HEIGHT - block_size - 64, 32, 32)
     saw.on()
 
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*2)//block_size) ]
+    fruit1 = Fruit(550, HEIGHT - block_size - 64, 32, 32, "Strawberry")
+    fruit2 = Fruit(650, HEIGHT - block_size - 64, 32, 32, "Cherries")
+    fruit3 = Fruit(750, HEIGHT - block_size - 64, 32, 32, "Apple")
+    fruit1.on()
+    fruit2.on()
+    fruit3.on()
+    fruit_group = pygame.sprite.Group(fruit1, fruit2, fruit3)
+
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*4)//block_size) ]
     #blocks = [Block(0, HEIGHT - block_size, block_size)]
     objects = [*floor, start, stop]
     in_menu = True
@@ -394,9 +434,14 @@ def main(window):
             saw.loop()
             stop.loop()
             start.loop()
+            fruit1.loop()
+            fruit2.loop()
+            fruit3.loop()
             handle_move(player, objects)
-            draw(window, background, bg_image, player, objects, offset_x)
-
+            draw(window, background, bg_image, player, objects, offset_x, fruit_group)
+            for fruit in fruit_group:
+                if pygame.sprite.collide_rect(player, fruit):
+                    fruit_group.remove(fruit)
 
             if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel> 0) or (
                     (player.rect.left - offset_x <= scroll_area_width )and player.x_vel) <0):
