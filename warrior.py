@@ -229,9 +229,9 @@ def handle_move(player, objects):
 
 
 
-    if keys[pygame.K_a] and not collide_left:
+    if (keys[pygame.K_a] or keys[pygame.K_LEFT]) and not collide_left:
         player.move_left(PLAYER_VEL)
-    if keys[pygame.K_d] and not collide_right:
+    if (keys[pygame.K_d] or keys[pygame.K_RIGHT]) and not collide_right:
         player.move_right(PLAYER_VEL)
    
     handle_vertical_collision(player, objects, player.y_vel)
@@ -336,6 +336,36 @@ class Saw(Object):
         if self.animation_count // self.ANIMATION_DELAY > len(sprites):
             self.animation_count = 0
 
+class Fan(Object):
+    ANIMATION_DELAY = 3
+
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "fan")
+        self.fan = load_sprite_sheets("Traps", "Fan", width, height)
+        self.image = self.fan["off"][0]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.animation_count = 0
+        self.animation_name = "off"
+
+    def on(self):
+        self.animation_name = "on"
+
+    def off(self):
+        self.animation_name = "off"
+
+    def loop(self):
+        sprites = self.fan[self.animation_name]
+        sprite_index = (self.animation_count //
+                        self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+            self.animation_count = 0
+
 class Fruit(Object):
     ANIMATION_DELAY = 3
 
@@ -373,7 +403,7 @@ def main(window):
     block_size = 96
     player = Player(100, 100, 50, 50)
 
-    stop = Stop(3400,HEIGHT - block_size - (64*2), 64, 64)
+    stop = Stop(4000,HEIGHT - block_size - (64*2), 64, 64)
     stop.on()
     start = Start(-20,HEIGHT - block_size - (64*4 -32), 64, 64)
     start.on()
@@ -382,6 +412,8 @@ def main(window):
     fire.on()
     saw = Saw(380, HEIGHT - block_size - 64, 32, 32)
     saw.on()
+    fan = Fan(block_size * 8, HEIGHT - block_size * 4 - 16 , 24, 8)
+    fan.on()
 
     fruit1 = Fruit(550, HEIGHT - block_size - 64, 32, 32, "Strawberry")
     fruit2 = Fruit(650, HEIGHT - block_size - 64, 32, 32, "Cherries")
@@ -391,12 +423,20 @@ def main(window):
     fruit3.on()
     fruit_group = pygame.sprite.Group(fruit1, fruit2, fruit3)
 
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*4)//block_size) ]
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*5)//block_size) ]
+    floor2 = [Block(i * block_size + 180, HEIGHT - block_size * 4, block_size) for i in range(5)]
+    floor3 = [Block(i * block_size + 900, HEIGHT - block_size * 5, block_size) for i in range(3)]
+    floor4 = [Block(i * block_size + 1450, HEIGHT - block_size * 3, block_size) for i in range(2)]
+    floor5 = [Block(i * block_size + 1900, HEIGHT - block_size * 5, block_size) for i in range(4)]
+    floor6 = [Block(i * block_size + 2300, HEIGHT - block_size * 6, block_size) for i in range(3)]
+    floor7 = [Block(i * block_size + 2500, HEIGHT - block_size * 4, block_size) for i in range(5)]
+    floor8 = [Block(i * block_size + 3300, HEIGHT - block_size * 6, block_size) for i in range(3)]
     #blocks = [Block(0, HEIGHT - block_size, block_size)]
     objects = [*floor, start, stop]
     in_menu = True
-    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
-                Block(block_size * 3 , HEIGHT - block_size * 4 , block_size), fire, saw, start, stop]
+    objects = [*floor, *floor2, *floor3, *floor4, *floor5, *floor6, *floor7, *floor8, Block(0, HEIGHT - block_size * 2, block_size),
+            Block(block_size * 8 , HEIGHT - block_size * 4 , block_size), Block(block_size * 12 , HEIGHT - block_size * 2 , block_size), 
+            Block(block_size * 18 , HEIGHT - block_size * 4 , block_size), Block(block_size * 33 , HEIGHT - block_size * 5 , block_size), fire, saw, fan, start, stop]
     offset_x = 0
     scroll_area_width = 200
 
@@ -432,6 +472,7 @@ def main(window):
             player.loop(FPS)
             fire.loop()
             saw.loop()
+            fan.loop()
             stop.loop()
             start.loop()
             fruit1.loop()
