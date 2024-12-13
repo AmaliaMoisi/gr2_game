@@ -1,11 +1,13 @@
 import random
 import math
 import pygame
+import time 
 from os import listdir
 from os.path import isfile, join
 
 pygame.init()
 pygame.display.set_caption("Warrior")
+
 
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
 start_img = pygame.image.load("assets/menu1/start_btn.png")
@@ -13,7 +15,14 @@ start_img = pygame.image.load("assets/menu1/start_btn.png")
 WIDTH, HEIGHT = 900, 700
 FPS = 60
 PLAYER_VEL = 5
+
+start_time = None
+font = pygame.font.SysFont("Arial", 24)
 window = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.init()
+window = pygame.display.set_mode((800, 600)) 
+clock = pygame.time.Clock()
+
 
 
 def flip(sprites):
@@ -340,21 +349,22 @@ class Fan(Object):
     ANIMATION_DELAY = 3
 
     def __init__(self, x, y, width, height):
-        super().__init__(x, y, width, height, "fan")
+        super().__init__(x, y, width, height, "Fan")
         self.fan = load_sprite_sheets("Traps", "Fan", width, height)
-        self.image = self.fan["off"][0]
+        print("Fan sprites loaded:", self.fan.keys()) 
+        self.image = self.fan["Off"][0]  
         self.mask = pygame.mask.from_surface(self.image)
         self.animation_count = 0
-        self.animation_name = "off"
+        self.animation_name = "Off"  
 
     def on(self):
-        self.animation_name = "on"
+        self.animation_name = "on"  
 
     def off(self):
-        self.animation_name = "off"
+        self.animation_name = "Off"  
 
     def loop(self):
-        sprites = self.fan[self.animation_name]
+        sprites = self.fan[self.animation_name]  
         sprite_index = (self.animation_count //
                         self.ANIMATION_DELAY) % len(sprites)
         self.image = sprites[sprite_index]
@@ -396,23 +406,28 @@ class Fruit(Object):
     
     def draw(self, window, offset_x=0):
         window.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+def get_timer():
+    if start_time is None:
+        return 0
+    return int(time.time() - start_time)
 
 def main(window):
+    global start_time  
     clock = pygame.time.Clock()
     background, bg_image = get_background("Pink.png")
     block_size = 96
     player = Player(100, 100, 50, 50)
 
-    stop = Stop(4000,HEIGHT - block_size - (64*2), 64, 64)
+    stop = Stop(4000, HEIGHT - block_size - (64 * 2), 64, 64)
     stop.on()
-    start = Start(-20,HEIGHT - block_size - (64*4 -32), 64, 64)
+    start = Start(-20, HEIGHT - block_size - (64 * 4 - 32), 64, 64)
     start.on()
 
     fire = Fire(180, HEIGHT - block_size - 64, 16, 32)
     fire.on()
     saw = Saw(380, HEIGHT - block_size - 64, 32, 32)
     saw.on()
-    fan = Fan(block_size * 8, HEIGHT - block_size * 4 - 16 , 24, 8)
+    fan = Fan(block_size * 8, HEIGHT - block_size * 4 - 16, 24, 8)
     fan.on()
 
     fruit1 = Fruit(550, HEIGHT - block_size - 64, 32, 32, "Strawberry")
@@ -423,7 +438,7 @@ def main(window):
     fruit3.on()
     fruit_group = pygame.sprite.Group(fruit1, fruit2, fruit3)
 
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH//block_size, (WIDTH*5)//block_size) ]
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH // block_size, (WIDTH * 5) // block_size)]
     floor2 = [Block(i * block_size + 180, HEIGHT - block_size * 4, block_size) for i in range(5)]
     floor3 = [Block(i * block_size + 900, HEIGHT - block_size * 5, block_size) for i in range(3)]
     floor4 = [Block(i * block_size + 1450, HEIGHT - block_size * 3, block_size) for i in range(2)]
@@ -431,16 +446,14 @@ def main(window):
     floor6 = [Block(i * block_size + 2300, HEIGHT - block_size * 6, block_size) for i in range(3)]
     floor7 = [Block(i * block_size + 2500, HEIGHT - block_size * 4, block_size) for i in range(5)]
     floor8 = [Block(i * block_size + 3300, HEIGHT - block_size * 6, block_size) for i in range(3)]
-    #blocks = [Block(0, HEIGHT - block_size, block_size)]
-    objects = [*floor, start, stop]
-    in_menu = True
+    
     objects = [*floor, *floor2, *floor3, *floor4, *floor5, *floor6, *floor7, *floor8, Block(0, HEIGHT - block_size * 2, block_size),
             Block(block_size * 8 , HEIGHT - block_size * 4 , block_size), Block(block_size * 12 , HEIGHT - block_size * 2 , block_size), 
             Block(block_size * 18 , HEIGHT - block_size * 4 , block_size), Block(block_size * 33 , HEIGHT - block_size * 5 , block_size), fire, saw, fan, start, stop]
     offset_x = 0
     scroll_area_width = 200
 
-
+    in_menu = True
     run = True
 
     while run:
@@ -450,7 +463,6 @@ def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
-            
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player.jump_count < 2:
@@ -463,6 +475,8 @@ def main(window):
 
                     if start_rect.collidepoint(mouse_pos):
                         in_menu = False  
+                        start_time = time.time()  
+                        print(f"Game started at: {start_time}") 
                     elif restart_rect.collidepoint(mouse_pos):
                         print("Restart clicked")
 
@@ -479,17 +493,27 @@ def main(window):
             fruit2.loop()
             fruit3.loop()
             handle_move(player, objects)
+
+            
+            elapsed_time = get_timer()
+            print(f"Elapsed Time: {elapsed_time}")  
+            
+           
+            timer_text = font.render(f"Time: {elapsed_time}s", True, (9, 9, 9)) 
+            window.blit(timer_text, (100, 100))  
+
+           
             draw(window, background, bg_image, player, objects, offset_x, fruit_group)
             for fruit in fruit_group:
                 if pygame.sprite.collide_rect(player, fruit):
                     fruit_group.remove(fruit)
 
-            if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel> 0) or (
-                    (player.rect.left - offset_x <= scroll_area_width )and player.x_vel) <0):
+            if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel > 0) or (
+                    (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0)):
 
                 offset_x += player.x_vel
 
-
+        pygame.display.update()  
 
     pygame.quit()
     quit()
