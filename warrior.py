@@ -15,14 +15,26 @@ start_img = pygame.image.load("assets/menu1/start_btn.png")
 WIDTH, HEIGHT = 900, 700
 FPS = 60
 PLAYER_VEL = 5
-
-start_time = None
-font = pygame.font.SysFont("Arial", 24)
 window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.init()
-window = pygame.display.set_mode((800, 600)) 
-clock = pygame.time.Clock()
 
+start_time = pygame.time.get_ticks()
+timer = 60
+font = pygame.font.SysFont("Arial", 24)
+
+
+def update_timer(increment=0):
+    global timer
+    current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
+    elapsed_seconds = (current_time - start_time) // 1000  # Convert milliseconds to seconds
+    timer = max(0, 60 - elapsed_seconds)
+    timer += increment
+    if timer < 0:
+        timer = 0
+
+def display_timer(window):
+    global timer
+    time_text = font.render(f"Time: {timer}s", True, (255, 255, 255))
+    window.blit(time_text, (10, 10))
 
 
 def flip(sprites):
@@ -240,6 +252,7 @@ def draw(window, background, bg_image, player, objects, offset_x, fruit_group):
     for fruit in fruit_group:
         fruit.draw(window, offset_x)
     player.draw(window,offset_x)
+    display_timer(window)
     pygame.display.update()
 
 def handle_move(player, objects):
@@ -258,9 +271,11 @@ def handle_move(player, objects):
     vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
     to_check = [collide_left, collide_right, *vertical_collide]
 
+
     for obj in to_check:
         if obj and (obj.name == "fire" or obj.name == "saw" or obj.name == "fan"):
             player.make_hit()
+
 
 def handle_vertical_collision(player, objects, dy):
     collided_objects = []
@@ -423,13 +438,9 @@ class Fruit(Object):
     
     def draw(self, window, offset_x=0):
         window.blit(self.image, (self.rect.x - offset_x, self.rect.y))
-def get_timer():
-    if start_time is None:
-        return 0
-    return int(time.time() - start_time)
 
-def main(window):
-    global start_time  
+def main(window): 
+    global timer, start_time
     clock = pygame.time.Clock()
     background, bg_image = get_background("Pink.png")
     block_size = 96
@@ -491,15 +502,14 @@ def main(window):
                     start_rect, restart_rect = draw_menu(window)
 
                     if start_rect.collidepoint(mouse_pos):
-                        in_menu = False  
-                        start_time = time.time()  
-                        print(f"Game started at: {start_time}") 
+                        in_menu = False
                     elif restart_rect.collidepoint(mouse_pos):
                         print("Restart clicked")
 
         if in_menu:
             draw_menu(window)
         else:
+            update_timer(-1)
             player.loop(FPS)
             fire.loop()
             saw.loop()
@@ -511,19 +521,12 @@ def main(window):
             fruit3.loop()
             handle_move(player, objects)
 
-            
-            elapsed_time = get_timer()
-            print(f"Elapsed Time: {elapsed_time}")  
-            
-           
-            timer_text = font.render(f"Time: {elapsed_time}s", True, (9, 9, 9)) 
-            window.blit(timer_text, (100, 100))  
-
-           
-            draw(window, background, bg_image, player, objects, offset_x, fruit_group)
             for fruit in fruit_group:
                 if pygame.sprite.collide_rect(player, fruit):
                     fruit_group.remove(fruit)
+                    update_timer(10)
+
+            draw(window, background, bg_image, player, objects, offset_x, fruit_group)
 
             if ((player.rect.right - offset_x >= WIDTH - scroll_area_width and player.x_vel > 0) or (
                     (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0)):
