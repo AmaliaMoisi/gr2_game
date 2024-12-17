@@ -22,17 +22,21 @@ timer = 60
 font = pygame.font.SysFont("Arial", 24)
 
 
+bonus_time = 0
+
 def update_timer(increment=0):
+    global start_time, bonus_time
+    bonus_time += increment 
+
+def calculate_timer():
     global timer
     current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
     elapsed_seconds = (current_time - start_time) // 1000  # Convert milliseconds to seconds
-    timer = max(0, 60 - elapsed_seconds)
-    timer += increment
-    if timer < 0:
-        timer = 0
+    timer = max(0, 60 + (bonus_time // 1000) - elapsed_seconds)
 
 def display_timer(window):
     global timer
+    calculate_timer()  # Ensure the timer is updated before displaying
     time_text = font.render(f"Time: {timer}s", True, (255, 255, 255))
     window.blit(time_text, (10, 10))
 
@@ -85,6 +89,7 @@ class Player(pygame.sprite.Sprite):
     GRAVITY = 1
     SPRITES = load_sprite_sheets("MainCharacters", "VirtualGuy", 32, 32, True)
     ANIMATION_DELAY = 3
+    
 
     def __init__(self, x, y, width, height):
         super().__init__()
@@ -98,6 +103,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_count = 0
         self.hit = False
         self.hit_count = 0
+        self.rect = pygame.Rect(x, y, width, height)
     
     def jump(self):
         self.y_vel = -self.GRAVITY * 8
@@ -171,6 +177,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = y
         self.x_vel = 0  
         self.y_vel = 0 
+    
 
 class Object(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height , name=None):
@@ -282,6 +289,7 @@ def handle_move(player, objects):
     for obj in to_check:
         if obj and (obj.name == "fire" or obj.name == "saw" or obj.name == "fan"):
             player.make_hit()
+            update_timer(-100)
 
 
 def handle_vertical_collision(player, objects, dy):
@@ -309,6 +317,7 @@ def collide(player, objects, dx):
     player.move(-dx, 0)
     player.update()
     return collided_object
+
 
 
 def draw_menu(window):
@@ -391,7 +400,7 @@ class Fan(Object):
         super().__init__(x, y, width, height, "Fan")
         self.fan = load_sprite_sheets("Traps", "Fan", width, height)
         print("Fan sprites loaded:", self.fan.keys()) 
-        self.image = self.fan["Off"][0]  
+        self.image = self.fan["off"][0]  
         self.mask = pygame.mask.from_surface(self.image)
         self.animation_count = 0
         self.animation_name = "Off"  
@@ -546,7 +555,7 @@ def main(window):
             for fruit in fruit_group:
                 if pygame.sprite.collide_rect(player, fruit):
                     fruit_group.remove(fruit)
-                    update_timer(10)
+                    update_timer(2000)
 
             # Handle movement
             handle_move(player, objects)
@@ -580,8 +589,6 @@ def main(window):
     quit()
 
 
-
-
-
 if __name__ == "__main__":
     main(window)
+
