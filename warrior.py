@@ -15,6 +15,7 @@ mixer.music.play(-1)
 FONT = pygame.font.Font(None, 74)
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
 start_img = pygame.image.load("assets/menu1/start_btn.png")
+exit_img = pygame.image.load('assets/menu1/exit_btn.png')
 
 WIDTH, HEIGHT = 900, 700
 FPS = 60
@@ -349,17 +350,14 @@ def collide(player, objects, dx):
 
 
 def draw_menu(window):
-    window.fill((0, 0, 0)) 
-
+    background_menu = pygame.image.load('assets/background_menu.png')
+    window.blit(background_menu, (0, 0))
     start_button_rect = start_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
     window.blit(start_img, start_button_rect)
-
-    restart_button_rect = restart_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
-    window.blit(restart_img, restart_button_rect)
-
+    exit_button_rect = exit_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 100))
+    window.blit(exit_img, exit_button_rect)
     pygame.display.update()
-
-    return start_button_rect, restart_button_rect
+    return start_button_rect, exit_button_rect
 
 class Fire(Object):
     ANIMATION_DELAY = 3
@@ -575,7 +573,7 @@ def main(window):
                 window.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2))
                 pygame.display.update()
                 continue  # Skip the rest of the loop
-
+        
         # Update game state if not in menu or game over
         if not in_menu and not game_over:
             update_timer(-1)
@@ -610,13 +608,13 @@ def main(window):
 
         else:
             # Display menu
-            start_rect, restart_rect = draw_menu(window)
+            start_rect, exit_rect = draw_menu(window)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if start_rect.collidepoint(mouse_pos):
                     in_menu = False
-                elif restart_rect.collidepoint(mouse_pos):
-                    print("Restart clicked")
+                elif exit_rect.collidepoint(mouse_pos):
+                    run = False
 
         pygame.display.update()
 
