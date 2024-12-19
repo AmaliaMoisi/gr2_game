@@ -13,6 +13,8 @@ mixer.music.load("assets/Songs/Platformer_song.mp3")
 mixer.music.play(-1)
 jump_fx = mixer.Sound('assets/Songs/jump.wav')
 jump_fx.set_volume(1.0)
+game_over_fx = mixer.Sound('assets/Songs/game_over.wav')  # Game over sound
+game_over_fx.set_volume(0.5)
 
 FONT = pygame.font.Font(None, 74)
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
@@ -25,7 +27,7 @@ PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
 start_time = pygame.time.get_ticks()
-timer = 60
+timer = 30
 font = pygame.font.SysFont("Arial", 24)
 
 
@@ -70,7 +72,7 @@ def calculate_timer():
     global timer
     current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
     elapsed_seconds = (current_time - start_time) // 1000  # Convert milliseconds to seconds
-    timer = max(0, 60 + (bonus_time // 1000) - elapsed_seconds)
+    timer = max(0, 30 + (bonus_time // 1000) - elapsed_seconds)
 
 def display_timer(window):
     global timer
@@ -582,7 +584,10 @@ def main(window):
                 window.fill((0, 0, 0))  # Clear screen
                 window.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2))
                 pygame.display.update()
-                continue  # Skip the rest of the loop
+                pygame.mixer.music.stop()
+                game_over_fx.play()
+                pygame.time.delay(3000)
+                run = False
         
         # Update game state if not in menu or game over
         if not in_menu and not game_over:
