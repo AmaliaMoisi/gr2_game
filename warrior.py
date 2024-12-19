@@ -11,6 +11,8 @@ pygame.display.set_caption("Warrior")
 
 mixer.music.load("assets/Songs/Platformer_song.mp3")
 mixer.music.play(-1)
+jump_fx = mixer.Sound('assets/Songs/jump.wav')
+jump_fx.set_volume(1.0)
 
 FONT = pygame.font.Font(None, 74)
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
@@ -138,7 +140,8 @@ class Player(pygame.sprite.Sprite):
         self.y_vel = -self.GRAVITY * 8
         self.animation_count = 0
         self.jump_count += 1 
-        if self.jump_count == 1: 
+        if self.jump_count == 1:
+            jump_fx.play()
             self.fall_count = 0
 
     def move(self, dx, dy):
