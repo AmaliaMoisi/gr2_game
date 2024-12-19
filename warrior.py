@@ -551,7 +551,7 @@ def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
-
+            
             if not game_over:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE and player.jump_count < 2:
