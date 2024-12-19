@@ -32,6 +32,13 @@ font = pygame.font.SysFont("Arial", 24)
 
 
 bonus_time = 0
+
+def draw_lives(window, player):
+    text = font.render("Lives: " + str(player.lives), True, (255, 255, 255))
+    text_rect = text.get_rect(center=(WIDTH // 18 - 6, (HEIGHT // 12)  ))
+    window.blit(text, text_rect)
+    pygame.display.update()
+
 def draw_win_message(window):
     window.fill((64, 0, 128))
     font = pygame.font.SysFont("Arial", 100, bold=True)
@@ -52,7 +59,9 @@ def show_tutorial(window):
         "- Move Right: D or Right Arrow",
         "- Jump: Space (Double jump allowed)",
         "",
-        "Avoid traps and reach the end before the timer runs out!",
+        "Be careful!", 
+        "You have three lives, and you'll lose one if you come into contact with traps.",
+        "Additionally, each trap you hit will also cost you valuable time.",
         
         
     ]
@@ -76,7 +85,7 @@ def calculate_timer():
 
 def display_timer(window):
     global timer
-    calculate_timer()  # Ensure the timer is updated before displaying
+    calculate_timer() 
     time_text = font.render(f"Time: {timer}s", True, (255, 255, 255))
     window.blit(time_text, (10, 10))
 
@@ -129,6 +138,9 @@ class Player(pygame.sprite.Sprite):
     GRAVITY = 1
     SPRITES = load_sprite_sheets("MainCharacters", "VirtualGuy", 32, 32, True)
     ANIMATION_DELAY = 3
+    MAX_LIVES = 3
+    lives = MAX_LIVES
+    health = 1
     
 
     def __init__(self, x, y, width, height):
@@ -160,6 +172,15 @@ class Player(pygame.sprite.Sprite):
     def make_hit(self):
         self.hit = True
         self.hit_count = 0
+        self.lose_life()
+    
+    def lose_life(self):
+        self.lives -= 1
+        self.respawn()
+    
+    def respawn(self):
+        self.rect.topleft = (100, 100)
+        self.health = 1
 
     def move_left(self, vel):
         self.x_vel = -vel
@@ -307,6 +328,7 @@ def draw(window, background, bg_image, player, objects, offset_x, fruit_group):
     for fruit in fruit_group:
         fruit.draw(window, offset_x)
     player.draw(window,offset_x)
+    draw_lives(window, player) 
     display_timer(window)
     pygame.display.update()
 
@@ -330,7 +352,7 @@ def handle_move(player, objects):
     for obj in to_check:
         if obj and (obj.name == "fire" or obj.name == "saw" or obj.name == "fan"):
             player.make_hit()
-            update_timer(-100)
+            update_timer(-3000)
 
 
 def handle_vertical_collision(player, objects, dy):
@@ -360,13 +382,12 @@ def collide(player, objects, dx):
     return collided_object
 
 
-
 def draw_menu(window):
     background_menu = pygame.image.load('assets/background_menu.png')
     window.blit(background_menu, (0, 0))
-    start_button_rect = start_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
+    start_button_rect = start_img.get_rect(center=(WIDTH // 2, HEIGHT // 2- 100))
     window.blit(start_img, start_button_rect)
-    exit_button_rect = exit_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 100))
+    exit_button_rect = exit_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
     window.blit(exit_img, exit_button_rect)
     pygame.display.update()
     return start_button_rect, exit_button_rect
@@ -614,7 +635,7 @@ def main(window):
                 run = False
 
             # Check if the timer ran out
-            if timer <= 0:
+            if timer <= 0 or player.lives <= 0:
                 game_over = True
                 game_over_time = pygame.time.get_ticks()
 
