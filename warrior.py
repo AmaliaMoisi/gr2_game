@@ -4,9 +4,13 @@ import pygame
 import time 
 from os import listdir
 from os.path import isfile, join
+from pygame import mixer
 
 pygame.init()
 pygame.display.set_caption("Warrior")
+
+mixer.music.load("assets/Songs/Platformer_song.mp3")
+mixer.music.play(-1)
 
 FONT = pygame.font.Font(None, 74)
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
@@ -424,16 +428,16 @@ class Fan(Object):
         super().__init__(x, y, width, height, "Fan")
         self.fan = load_sprite_sheets("Traps", "Fan", width, height)
         print("Fan sprites loaded:", self.fan.keys()) 
-        self.image = self.fan["Off"][0]  
+        self.image = self.fan["off"][0]  
         self.mask = pygame.mask.from_surface(self.image)
         self.animation_count = 0
-        self.animation_name = "Off"  
+        self.animation_name = "off"  
 
     def on(self):
         self.animation_name = "on"  
 
     def off(self):
-        self.animation_name = "Off"  
+        self.animation_name = "off"  
 
     def loop(self):
         sprites = self.fan[self.animation_name]  
