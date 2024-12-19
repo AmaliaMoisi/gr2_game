@@ -4,13 +4,9 @@ import pygame
 import time 
 from os import listdir
 from os.path import isfile, join
-from pygame import mixer
 
 pygame.init()
 pygame.display.set_caption("Warrior")
-
-mixer.music.load("assets/Songs/Platformer_song.mp3")
-mixer.music.play(-1)
 
 FONT = pygame.font.Font(None, 74)
 restart_img = pygame.image.load("assets/menu1/restart_btn.png")
@@ -35,10 +31,13 @@ def show_tutorial(window):
         "Welcome to Warrior!",
         "Controls:",
         "- Move Left: A or Left Arrow",
+
+        
         "- Move Right: D or Right Arrow",
         "- Jump: Space (Double jump allowed)",
         "",
-        "Avoid traps and reach the end!",
+        "Avoid traps and reach the end before the timer runs out!",
+        
         
     ]
     y_offset = 100
@@ -571,8 +570,8 @@ def main(window):
                 window.fill((0, 0, 0))  # Clear screen
                 window.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2))
                 pygame.display.update()
-                continue
-                
+                continue  # Skip the rest of the loop
+
         # Update game state if not in menu or game over
         if not in_menu and not game_over:
             update_timer(-1)
@@ -588,7 +587,6 @@ def main(window):
                 if pygame.sprite.collide_rect(player, fruit):
                     fruit_group.remove(fruit)
                     update_timer(2000)
-
 
             # Handle movement
             handle_move(player, objects)
