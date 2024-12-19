@@ -28,6 +28,27 @@ font = pygame.font.SysFont("Arial", 24)
 
 bonus_time = 0
 
+def show_tutorial(window):
+    window.fill((0, 0, 0))  # Black background
+    tutorial_font = pygame.font.Font(None, 36)
+    instructions = [
+        "Welcome to Warrior!",
+        "Controls:",
+        "- Move Left: A or Left Arrow",
+        "- Move Right: D or Right Arrow",
+        "- Jump: Space (Double jump allowed)",
+        "",
+        "Avoid traps and reach the end!",
+        
+    ]
+    y_offset = 100
+    for line in instructions:
+        text_surface = tutorial_font.render(line, True, (255, 0, 0))
+        window.blit(text_surface, (WIDTH // 2 - text_surface.get_width() // 2, y_offset))
+        y_offset += 40
+
+    pygame.display.update()
+
 def update_timer(increment=0):
     global start_time, bonus_time
     bonus_time += increment 
@@ -404,7 +425,7 @@ class Fan(Object):
         super().__init__(x, y, width, height, "Fan")
         self.fan = load_sprite_sheets("Traps", "Fan", width, height)
         print("Fan sprites loaded:", self.fan.keys()) 
-        self.image = self.fan["off"][0]  
+        self.image = self.fan["Off"][0]  
         self.mask = pygame.mask.from_surface(self.image)
         self.animation_count = 0
         self.animation_name = "Off"  
@@ -465,6 +486,13 @@ def main(window):
     background, bg_image = get_background("Pink.png")
     block_size = 96
     player = Player(100, 100, 50, 50)
+
+    # Show tutorial if in menu state
+    in_menu = True  # Assuming in_menu is True at the start
+    if in_menu:
+        show_tutorial(window)
+        time.sleep(5)  # Pause for a few seconds to let the player read the tutorial
+        in_menu = False  
 
     # Initialize all objects
     stop = Stop(4000, HEIGHT - block_size - (64 * 2), 64, 64)
