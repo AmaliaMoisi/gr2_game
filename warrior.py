@@ -30,6 +30,13 @@ font = pygame.font.SysFont("Arial", 24)
 
 
 bonus_time = 0
+def draw_win_message(window):
+    window.fill((64, 0, 128))
+    font = pygame.font.SysFont("Arial", 100, bold=True)
+    text = font.render("YOU WON!! :)", True, (255, 105, 180))  # Pink text
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+    window.blit(text, text_rect)
+    pygame.display.update()
 
 def show_tutorial(window):
     window.fill((0, 0, 0))  # Black background
@@ -595,6 +602,11 @@ def main(window):
 
             # Handle movement
             handle_move(player, objects)
+
+            if pygame.sprite.collide_rect(player, stop):
+                draw_win_message(window)
+                pygame.time.delay(3000)
+                run = False
 
             # Check if the timer ran out
             if timer <= 0:
