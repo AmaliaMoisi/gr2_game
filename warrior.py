@@ -48,19 +48,19 @@ def draw_win_message(window):
     pygame.display.update()
 
 def show_tutorial(window):
-    window.fill((0, 0, 0))  # Black background
-    tutorial_font = pygame.font.Font(None, 36)
+    window.fill((0, 0, 0))
+    tutorial_font = pygame.font.Font(None, 24)
     instructions = [
         "Welcome to Warrior!",
         "Controls:",
         "- Move Left: A or Left Arrow",
-
-        
         "- Move Right: D or Right Arrow",
         "- Jump: Space (Double jump allowed)",
         "",
+        "Your goal is to reach the finish line, buuuut.."
         "Be careful!", 
         "You have three lives, and you'll lose one if you come into contact with traps.",
+        "and also be respawn (sorry, not sorry)",
         "Additionally, each trap you hit will also cost you valuable time.",
         "You'll want to collect any fruits you come across,",
         "as they will give you extra time.",
@@ -460,8 +460,8 @@ class Fan(Object):
     ANIMATION_DELAY = 3
 
     def __init__(self, x, y, width, height):
-        super().__init__(x, y, width, height, "Fan")
-        self.fan = load_sprite_sheets("Traps", "Fan", width, height)
+        super().__init__(x, y, width, height, "fan")
+        self.fan = load_sprite_sheets("Traps", "fan", width, height)
         print("Fan sprites loaded:", self.fan.keys()) 
         self.image = self.fan["off"][0]  
         self.mask = pygame.mask.from_surface(self.image)
@@ -537,12 +537,18 @@ def main(window):
     stop.on()
     start = Start(-20, HEIGHT - block_size - (64 * 4 - 32), 64, 64)
     start.on()
-    fire = Fire(180, HEIGHT - block_size - 64, 16, 32)
-    fire.on()
-    saw = Saw(380, HEIGHT - block_size - 64, 32, 32)
-    saw.on()
-    fan = Fan(block_size * 8, HEIGHT - block_size * 4 - 16, 24, 8)
-    fan.on()
+    fire1 = Fire(180, HEIGHT - block_size - 64, 16, 32)
+    fire1.on()
+    fire2 = Fire(1050, HEIGHT - block_size * 5  - 64, 16, 32)
+    fire2.on()
+    saw1 = Saw(380, HEIGHT - block_size - 64, 32, 32)
+    saw1.on()
+    saw2 = Saw(2750, HEIGHT - block_size *4 - 64, 32, 32)
+    saw2.on()
+    fan1 = Fan(block_size * 8, HEIGHT - block_size * 4 - 16, 24, 8)
+    fan1.on()
+    fan2 = Fan(2000, HEIGHT - block_size * 5 - 16, 24, 8)
+    fan2.on()
 
     fruit1 = Fruit(550, HEIGHT - block_size - 64, 32, 32, "Strawberry")
     fruit2 = Fruit(650, HEIGHT - block_size - 64, 32, 32, "Cherries")
@@ -574,7 +580,7 @@ def main(window):
         Block(block_size * 12, HEIGHT - block_size * 2, block_size),
         Block(block_size * 18, HEIGHT - block_size * 4, block_size),
         Block(block_size * 33, HEIGHT - block_size * 5, block_size),
-        fire, saw, fan, start, stop
+        fire1, fire2, saw1, saw2, fan1, fan2, start, stop
     ]
     offset_x = 0
     scroll_area_width = 200
@@ -623,9 +629,12 @@ def main(window):
         if not in_menu and not game_over:
             update_timer(-1)
             player.loop(FPS)
-            fire.loop()
-            saw.loop()
-            fan.loop()
+            fire1.loop()
+            fire2.loop()
+            saw1.loop()
+            saw2.loop()
+            fan1.loop()
+            fan2.loop()
             stop.loop()
             start.loop()
 
