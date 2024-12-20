@@ -27,7 +27,7 @@ PLAYER_VEL = 5
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
 start_time = pygame.time.get_ticks()
-timer = 30
+timer = 45
 font = pygame.font.SysFont("Arial", 24)
 
 
@@ -62,6 +62,10 @@ def show_tutorial(window):
         "Be careful!", 
         "You have three lives, and you'll lose one if you come into contact with traps.",
         "Additionally, each trap you hit will also cost you valuable time.",
+        "You'll want to collect any fruits you come across,",
+        "as they will give you extra time.",
+        "Oh and also, just a quick disclaimer:",
+        "your timer is already ticking, so make sure to think and act quickly! :)",
         
         
     ]
@@ -81,7 +85,7 @@ def calculate_timer():
     global timer
     current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
     elapsed_seconds = (current_time - start_time) // 1000  # Convert milliseconds to seconds
-    timer = max(0, 30 + (bonus_time // 1000) - elapsed_seconds)
+    timer = max(0, 45 + (bonus_time // 1000) - elapsed_seconds)
 
 def display_timer(window):
     global timer
@@ -543,10 +547,15 @@ def main(window):
     fruit1 = Fruit(550, HEIGHT - block_size - 64, 32, 32, "Strawberry")
     fruit2 = Fruit(650, HEIGHT - block_size - 64, 32, 32, "Cherries")
     fruit3 = Fruit(750, HEIGHT - block_size - 64, 32, 32, "Apple")
-    fruit1.on()
-    fruit2.on()
-    fruit3.on()
-    fruit_group = pygame.sprite.Group(fruit1, fruit2, fruit3)
+    fruit4 = Fruit(1000, HEIGHT - block_size * 3 -64, 32, 32, "Apple")
+    fruit5 = Fruit(1100, HEIGHT - block_size * 5 - 64, 32, 32, "Cherries")
+    fruit6 = Fruit(2700, HEIGHT - block_size * 4 - 64, 32, 32, "Strawberry")
+    fruit7 = Fruit(2400, HEIGHT - block_size * 6 - 64, 32, 32, "Apple")
+    fruit8 = Fruit(2600, HEIGHT - block_size * 4 - 64, 32, 32, "Cherries")
+    fruit9 = Fruit(1700, HEIGHT - block_size - 64, 32, 32, "Strawberry")
+    fruit10 = Fruit(1950, HEIGHT - block_size * 5 - 64, 32, 32, "Apple")
+    fruit11 = Fruit(3350, HEIGHT - block_size * 6 - 64, 32, 32, "Strawberry")
+    fruit_group = pygame.sprite.Group(fruit1, fruit2, fruit3, fruit4, fruit5, fruit6, fruit7, fruit8, fruit9, fruit10, fruit11)
 
     # Platforms and floors
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(- WIDTH // block_size, (WIDTH * 5) // block_size)]
@@ -624,7 +633,7 @@ def main(window):
             for fruit in fruit_group:
                 if pygame.sprite.collide_rect(player, fruit):
                     fruit_group.remove(fruit)
-                    update_timer(2000)
+                    update_timer(7000)
 
             # Handle movement
             handle_move(player, objects)
