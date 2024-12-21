@@ -29,8 +29,6 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 start_time = pygame.time.get_ticks()
 timer = 45
 font = pygame.font.SysFont("Arial", 24)
-
-
 bonus_time = 0
 
 def draw_lives(window, player):
@@ -49,25 +47,24 @@ def draw_win_message(window):
 
 def show_tutorial(window):
     window.fill((0, 0, 0))
-    tutorial_font = pygame.font.Font(None, 24)
+    tutorial_font = pygame.font.Font(None, 20)
     instructions = [
         "Welcome to Warrior!",
         "Controls:",
         "- Move Left: A or Left Arrow",
         "- Move Right: D or Right Arrow",
         "- Jump: Space (Double jump allowed)",
-        "",
         "Your goal is to reach the finish line, buuuut.."
         "Be careful!", 
         "You have three lives, and you'll lose one if you come into contact with traps.",
-        "and also be respawn (sorry, not sorry)",
+        "and also be respawn (only you, not the screen :()) ) (Tricky tricky)",
         "Additionally, each trap you hit will also cost you valuable time.",
         "You'll want to collect any fruits you come across,",
         "as they will give you extra time.",
         "Oh and also, just a quick disclaimer:",
         "your timer is already ticking, so make sure to think and act quickly! :)",
-        
-        
+        "",
+        "Loading..",   
     ]
     y_offset = 100
     for line in instructions:
@@ -92,7 +89,6 @@ def display_timer(window):
     calculate_timer() 
     time_text = font.render(f"Time: {timer}s", True, (255, 255, 255))
     window.blit(time_text, (10, 10))
-
 
 def flip(sprites):
     return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -144,7 +140,6 @@ class Player(pygame.sprite.Sprite):
     ANIMATION_DELAY = 3
     MAX_LIVES = 3
     lives = MAX_LIVES
-    health = 1
     
 
     def __init__(self, x, y, width, height):
@@ -184,7 +179,6 @@ class Player(pygame.sprite.Sprite):
     
     def respawn(self):
         self.rect.topleft = (100, 100)
-        self.health = 1
 
     def move_left(self, vel):
         self.x_vel = -vel
@@ -237,12 +231,6 @@ class Player(pygame.sprite.Sprite):
     def draw(self, win, offset_x):
         win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))
 
-    def reset_position(self, x, y):
-       
-        self.rect.x = x
-        self.rect.y = y
-        self.x_vel = 0  
-        self.y_vel = 0 
     
 
 class Object(pygame.sprite.Sprite):
@@ -342,8 +330,6 @@ def handle_move(player, objects):
     collide_left= collide(player, objects, -PLAYER_VEL*2)
     collide_right= collide(player, objects, PLAYER_VEL*2)
 
-
-
     if (keys[pygame.K_a] or keys[pygame.K_LEFT]) and not collide_left:
         player.move_left(PLAYER_VEL)
     if (keys[pygame.K_d] or keys[pygame.K_RIGHT]) and not collide_right:
@@ -357,7 +343,6 @@ def handle_move(player, objects):
         if obj and (obj.name == "fire" or obj.name == "saw" or obj.name == "fan"):
             player.make_hit()
             update_timer(-3000)
-
 
 def handle_vertical_collision(player, objects, dy):
     collided_objects = []
@@ -384,7 +369,6 @@ def collide(player, objects, dx):
     player.move(-dx, 0)
     player.update()
     return collided_object
-
 
 def draw_menu(window):
     background_menu = pygame.image.load('assets/background_menu.png')
@@ -525,12 +509,6 @@ def main(window):
     block_size = 96
     player = Player(100, 100, 50, 50)
 
-    # Show tutorial if in menu state
-    in_menu = True  # Assuming in_menu is True at the start
-    if in_menu:
-        show_tutorial(window)
-        time.sleep(5)  # Pause for a few seconds to let the player read the tutorial
-        in_menu = False  
 
     # Initialize all objects
     stop = Stop(4000, HEIGHT - block_size - (64 * 2), 64, 64)
@@ -585,16 +563,20 @@ def main(window):
     offset_x = 0
     scroll_area_width = 200
 
+    # Show tutorial if in menu state
+    in_menu = True  # Assuming in_menu is True at the start
+    if in_menu:
+        show_tutorial(window)
+        time.sleep(10)  # Pause for a few seconds to let the player read the tutorial
+        in_menu = False
+        
     # Game state
-    in_menu = True
     game_over = False
-    game_over_time = 0
     run = True
 
     while run:
         clock.tick(FPS)
 
-        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -606,15 +588,6 @@ def main(window):
                         player.jump()
 
         if game_over:
-            # Handle "Game Over" screen
-            if pygame.time.get_ticks() - game_over_time > 5000:  # 5 seconds elapsed
-                # Reset game state after 5 seconds
-                game_over = False
-                timer = 60  # Reset timer
-                player.reset_position(100, 100)  # Reset player position
-                player.x_vel, player.y_vel = 0, 0  # Reset velocities
-                offset_x = 0  # Reset scrolling
-            else:
                 # Show "Game Over" message
                 game_over_text = FONT.render("Game Over", True, (255, 0, 0))
                 window.fill((0, 0, 0))  # Clear screen
@@ -626,7 +599,7 @@ def main(window):
                 run = False
         
         # Update game state if not in menu or game over
-        if not in_menu and not game_over:
+        elif not in_menu and not game_over:
             update_timer(-1)
             player.loop(FPS)
             fire1.loop()
@@ -655,7 +628,6 @@ def main(window):
             # Check if the timer ran out
             if timer <= 0 or player.lives <= 0:
                 game_over = True
-                game_over_time = pygame.time.get_ticks()
 
             # Draw game elements
             draw(window, background, bg_image, player, objects, offset_x, fruit_group)
