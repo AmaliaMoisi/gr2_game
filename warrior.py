@@ -571,6 +571,7 @@ def main(window):
         in_menu = False
         
     # Game state
+    in_menu = True
     game_over = False
     run = True
 
