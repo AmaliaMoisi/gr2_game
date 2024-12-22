@@ -56,11 +56,11 @@ def show_tutorial(window):
         "- Jump: Space (Double jump allowed)",
         "Your goal is to reach the finish line, buuuut.."
         "Be careful!", 
-        "You have three lives, and you'll lose one if you come into contact with traps.",
+        "You have three lives, and you'll lose one if you come into contact with traps",
+        " and if you touch the trap from the top, it will trigger an automatic fatal consequence.",
         "and also be respawn (only you, not the screen :()) ) (Tricky tricky)",
         "Additionally, each trap you hit will also cost you valuable time.",
-        "You'll want to collect any fruits you come across,",
-        "as they will give you extra time.",
+        "You'll want to collect any fruits you come across, as they will give you extra time.",
         "Oh and also, just a quick disclaimer:",
         "your timer is already ticking, so make sure to think and act quickly! :)",
         "",
@@ -174,7 +174,8 @@ class Player(pygame.sprite.Sprite):
         self.lose_life()
     
     def lose_life(self):
-        self.lives -= 1
+        if self.lives > 0:
+            self.lives -= 1
         self.respawn()
     
     def respawn(self):
@@ -564,11 +565,8 @@ def main(window):
     scroll_area_width = 200
 
     # Show tutorial if in menu state
-    in_menu = True  # Assuming in_menu is True at the start
-    if in_menu:
-        show_tutorial(window)
-        time.sleep(10)  # Pause for a few seconds to let the player read the tutorial
-        in_menu = False
+    show_tutorial(window)
+    time.sleep(10)  # Pause for a few seconds to let the player read the tutorial
         
     # Game state
     in_menu = True
@@ -621,11 +619,6 @@ def main(window):
             # Handle movement
             handle_move(player, objects)
 
-            if pygame.sprite.collide_rect(player, stop):
-                draw_win_message(window)
-                pygame.time.delay(3000)
-                run = False
-
             # Check if the timer ran out
             if timer <= 0 or player.lives <= 0:
                 game_over = True
@@ -647,6 +640,11 @@ def main(window):
                     in_menu = False
                 elif exit_rect.collidepoint(mouse_pos):
                     run = False
+
+        if pygame.sprite.collide_rect(player, stop):
+                draw_win_message(window)
+                pygame.time.delay(3000)
+                run = False
 
         pygame.display.update()
 
